@@ -11,6 +11,7 @@ from fileCoder import encodeNoFile
 from fileCoder import decodeNoFile
 import math
 import random
+import datetime
 
 
 # Finds the prime numbers between 2 and n by testing odd numbers against known primes
@@ -73,15 +74,17 @@ def getDecryptor (encryptor, length):
 def RSAkeys():
     k = 1024
     encryptor = 65537
-    allPrimes = primeList(10000) #at least 10 000 prime numbers.
-    
-    prime1 = randomPrime(allPrimes, 50, len(allPrimes)/2)
-    prime2 = randomPrime(allPrimes, len(allPrimes)/2, len(allPrimes)-1)
-    
+    allPrimes = primeList(6500) #at least 6 500 prime numbers.
+
+    #use top 50% of primes 
+    prime1 = randomPrime(allPrimes, len(allPrimes)/2, len(allPrimes)*3/4) 
+    prime2 = randomPrime(allPrimes, len(allPrimes)*3/4, len(allPrimes)-1)
+
+    #ensure primes are useful
     while (prime1%encryptor == 1):
-        prime1 = randomPrime(allPrimes, 20, 500)
+        prime1 = randomPrime(allPrimes, len(allPrimes)/2, len(allPrimes)*3/4)
     while (prime2%encryptor == 1):
-        prime2 = randomPrime(allPrimes, 500, 900)
+        prime2 = randomPrime(allPrimes, len(allPrimes)*3/4, len(allPrimes)-1)
 
     modulus = prime1*prime2
     length = (prime1-1)*(prime2-1)
@@ -160,6 +163,10 @@ def RSAdecrypt ():
     tempFile = "temp.txt"
     outputFile = "dec.txt"
 
+    #performance start
+    currentDT = datetime.datetime.now()
+    print (str(currentDT))
+
     #load keys
     privateKeys = fileManager(privateFile, "r", 0)
     split = privateKeys.index(",")
@@ -179,6 +186,11 @@ def RSAdecrypt ():
     print("Decoding file ...")
     plainTextMsg = decodeNoFile(msg)
     status = fileManager(outputFile, "w", str(plainTextMsg))
+
+    #performance end
+    currentDT = datetime.datetime.now()
+    print (str(currentDT))
+    
     if (status):
         print("Error writting file")
         return 1
