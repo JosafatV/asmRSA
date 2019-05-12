@@ -1,6 +1,6 @@
 	.data
-keySpace: .space 64	# create space to store the key
-decryptors: .space 38	# create space to stroe possible decryptors
+keySpace: .space 32	# create space to store the key
+decryptors: .space 32	# create space to stroe possible decryptors
 pukString: .text "Public Key"
 prkString: .text "Private Key"
 
