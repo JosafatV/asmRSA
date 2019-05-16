@@ -50,21 +50,18 @@ def randomPrime (primeNumbers, lowerLimit, upperLimit):
 # Calculates the private decryptor values
 # encryptor: integer with the value of the encryptor
 # length: (prime1-1)*(prime2-1)
-# return: one of the decryptor values
+# return: the first decryptour found
 def getDecryptor (encryptor, length):
-    decryptors = []
     findDecryptor = (lambda d: (encryptor*d-1)%length == 0)
-    for d in range (1, length-1000000): # 1 < d < phi
+    d = length - 1
+    while (d>1):
         if (findDecryptor(d)):
-            decryptors.append(d)
-    if (len(decryptors) == 0):
-        print ("Error: decryptor not found")
-        return -1
-    else:
-        randomIndex = random.randint(0, len(decryptors)-1)
-        #print (decryptors[randomIndex])
-        return decryptors[randomIndex]
-
+            #print ("d: " + str(d))
+            return d
+        else:
+            d -= 1
+    print ("Error: decryptor not found")
+    return -1
         
 # Codes the data from a text file
 # sourceFile: file with the data
@@ -74,17 +71,17 @@ def getDecryptor (encryptor, length):
 def RSAkeys():
     k = 1024
     encryptor = 65537
-    allPrimes = primeList(6500) #at least 6 500 prime numbers.
+    allPrimes = primeList(65000) #at least 6 500 prime numbers.
 
     #use top 50% of primes 
-    prime1 = randomPrime(allPrimes, len(allPrimes)/2, len(allPrimes)*3/4) 
-    prime2 = randomPrime(allPrimes, len(allPrimes)*3/4, len(allPrimes)-1)
+    prime1 = randomPrime(allPrimes, int(len(allPrimes)/2), int(len(allPrimes)*3/4)) 
+    prime2 = randomPrime(allPrimes, int(len(allPrimes))*3/4, len(allPrimes)-1)
 
     #ensure primes are useful
     while (prime1%encryptor == 1):
-        prime1 = randomPrime(allPrimes, len(allPrimes)/2, len(allPrimes)*3/4)
+        prime1 = randomPrime(allPrimes, int(len(allPrimes)/2), int(len(allPrimes)*3/4))
     while (prime2%encryptor == 1):
-        prime2 = randomPrime(allPrimes, len(allPrimes)*3/4, len(allPrimes)-1)
+        prime2 = randomPrime(allPrimes, int(len(allPrimes)*3/4), len(allPrimes)-1)
 
     modulus = prime1*prime2
     length = (prime1-1)*(prime2-1)
@@ -93,11 +90,11 @@ def RSAkeys():
     if (decryptor<0):
         return 1
     else:
-        pukFile = "public key.txt"
+        pukFile = "Files/public key.txt"
         publicKey = str(encryptor) + "," + str(modulus)
         a = fileManager(pukFile, "w", publicKey)
 
-        prkFile = "private key.txt"
+        prkFile = "Files/private key.txt"
         privateKey = str(decryptor) + "," + str(modulus)
         b = fileManager(prkFile, "w", privateKey)
 

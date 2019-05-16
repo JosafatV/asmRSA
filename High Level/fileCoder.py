@@ -239,7 +239,7 @@ def decodeNoFile (data):
 
 #test function, requires especific files to exist
 def testEncode():
-    errorMsg = encode ("src.txt", "temp.txt")
+    errorMsg = encode ("Files/src.txt", "Files/temp.txt")
     if (errorMsg):
         print ("Error writing file")
         return 1
@@ -249,7 +249,7 @@ def testEncode():
 
 #test function, requires especific files to exist
 def testDecode():
-    errorMsg = decode ("temp.txt", "dec.txt")
+    errorMsg = decode ("Files/temp.txt", "Files/dec.txt")
     if (errorMsg):
         print ("Error writing file")
         return 1
