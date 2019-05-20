@@ -115,10 +115,10 @@ def RSAkeys():
 # return: 0 if succeded, writes the output file
 #def RSAencrypt (srcFile, publicFile):
 def RSAencrypt ():
-    srcFile = "src.txt"
-    publicFile = "public key.txt"
-    tempFile = "temp.txt"   #can be removed
-    outputFile = "out.txt"
+    srcFile = "Files/src.txt"
+    publicFile = "Files/public key.txt"
+    tempFile = "Files/temp.txt"   #can be removed
+    outputFile = "Files/out.txt"
 
     #code the file
     codedData = encodeNoFile(srcFile)
@@ -155,10 +155,10 @@ def RSAencrypt ():
 # return: 0 if succeded, writes the output file
 #def RSAdecrypt (srcFile, privateFile):
 def RSAdecrypt ():
-    srcFile = "out.txt"
-    privateFile = "private key.txt"
-    tempFile = "temp.txt"
-    outputFile = "dec.txt"
+    srcFile = "Files/out.txt"
+    privateFile = "Files/private key.txt"
+    tempFile = "Files/temp.txt"
+    outputFile = "Files/dec.txt"
 
     #performance start
     currentDT = datetime.datetime.now()
