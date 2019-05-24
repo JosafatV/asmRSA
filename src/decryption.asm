@@ -36,10 +36,36 @@ done:		.asciiz "not yet implemented\n"
 	.globl _main
 	
 _main:
-	# hard code data for decryption
-	j _encryption
+	la $t0, message 	# 
+	li $t1, -963		# load message "go"
+	sw $t1, 12($t0)
+
+	la $t0, puKey 		# 
+	li $t1, 565129		# load modulus
+	sw $t1, 12($t0)
 	
+	la $t0, prKey 		# 
+	li $t1, 375723		# load modulus
+	sw $t1, 12($t0)
 	
+_decryption:
+	la $t0, message
+	lw $t1, 12($t0)		# load 1st 32 bits
+	move $t3, $t1		# set 1st iteration
+
+	la $t0, prK
+	lw $t2, 12($t0)		# load 1st 32 bits (iteratior = pr key)
+
+_pow:
+	mul $t3, $t3, $t1	# a**n = a**(n-1) * a
+	sub, $t2, $t2, 1	# decrement iterator
+	bnez $t2, _pow		# iterate
 	
-_encryption:
-	#decrypt, save to file and exit
+	la $t0, puKey		#
+	lw $t1, 12($t0)		# 
+	
+	div $t3, $t3, $t1
+	mfhi $t3	
+	
+	la $t0, buffer
+	sw $t3, 12($t0)
