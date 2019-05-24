@@ -1,5 +1,8 @@
 # DOCUMENTATION 
 # http://courses.missouristate.edu/kenvollmar/mars/help/syscallhelp.html
+#
+#
+# OUTDATED AND OBSOLETE
 
 
 
@@ -42,7 +45,7 @@ _openFile:
 _readFile:
 	move $a0, $t1		# Load file descriptor
 	la $a1, inputB          # addr input buffer
-	la $a2, 4		# max number of characters (bytes) to load
+	li $a2, 4		# max number of characters (bytes) to load
 	li $v0, 14		# load syscall: read_from_file
 	syscall	 		# execute syscall: open_file
 	
@@ -66,6 +69,7 @@ _closeFile:
 	li $v0, 16		# load syscall: close_file
 	syscall	 		# execute syscall: close_file
 	
+	
 	li $v0, 10		# load syscall: exit
 	syscall
 	
@@ -73,10 +77,12 @@ _errExit:
 	la      $a0, bad_msg	# load bad message
 	li      $v0, 4		# print error message
 	syscall	
+	
 	li      $v0,10		# load syscall: exit
 	syscall
 
 	
+_process:
 	
 	
 	

@@ -3,20 +3,20 @@
 
 
 	.data
-firstKey: .space 32
-seconKey: .space 32
+opA: .space 32
+opB: .space 32
 
-einsKey: .space 32
-zweiKey: .space 32
-dreiKey: .space 32
-vierKey: .space 32
+result: .space 32
+temp2: .space 32
+temp3: .space 32
+temp4: .space 32
 
 	.text
 	.globl _main
 	
 _main:
 	# load first operand
-	la $t1, firstKey
+	la $t1, opA
 	li $t0, 1		# first 32 bits
 	sw $t0, 12($t1)
 	li $t0, 1		# second 32 bits
@@ -27,7 +27,7 @@ _main:
 	sw $t0, ($t1)
 	
 	# load second operand
-	la $t2, seconKey
+	la $t2, opB
 	li $t0, 2		# first 32 bits
 	sw $t0, 12($t2)
 	li $t0, 3		# second 32 bits
@@ -41,32 +41,32 @@ _main:
 	
 	# first operand t1 > second operand t2
 _mul64:
-	la $t9, einsKey		# get storage address
+	la $t9, result		# get storage address
 	add $t9, $t9, 28	# offset storage (start from lsb)
 	lw $t4, 12($t2)		# load 32 bits of operand B (Bi = B1)
 	jal _mul64aux
 	
-	la $t9, zweiKey		# get storage address
+	la $t9, temp2		# get storage address
 	add $t9, $t9, 24	# offset storage
 	lw $t4, 8($t2)		# load 32 bits of operand B (Bi = B2)
 	jal _mul64aux
 	
-	la $t9, dreiKey		# get storage address
+	la $t9, temp3		# get storage address
 	add $t9, $t9, 20	# offset storage (start from lsb)
 	lw $t4, 4($t2)		# load 32 bits of operand B (Bi = B3)
 	jal _mul64aux
 	
-	la $t9, vierKey		# get storage address
+	la $t9, temp4		# get storage address
 	add $t9, $t9, 16	# offset storage
 	lw $t4, ($t2)		# load 32 bits of operand B (Bi = B4)
 	jal _mul64aux
 	
 	# add parts of the multiplication
 	li $t5, 0 # set initial overflow to 0
-	la $t6, einsKey 
-	la $t7, zweiKey
-	la $t8, dreiKey
-	la $t9, vierKey
+	la $t6, result 
+	la $t7, temp2
+	la $t8, temp3
+	la $t9, temp4
 	
 	# offset to start from lsb
 	add $t6, $t6, 28
@@ -94,7 +94,7 @@ _mad64aux:
 	mfhi $t0		# catch overflow
 	add $t5, $t5, $t0	# accumulate overflows
 	
-	sw $t3, ($t6)		#turns einsKey into modulus
+	sw $t3, ($t6)		# turns result into modulus
 	
 	# decrement address pointers
 	sub $t6, $t6, 4
@@ -102,10 +102,10 @@ _mad64aux:
 	sub $t8, $t8, 4
 	sub $t9, $t9, 4
 	
-	sub $t1, $t1, 0		#decrement iterator
-	bnez $t1, _mad64aux	# branch 
+	sub $t1, $t1, 0		# decrement iterator
+	bnez $t1, _mad64aux	# iterate 
 	
-	# at this point einskey = firstKey * secondKey
+	# at this point einskey = opA * secondKey
 	
 	#end program
 	li $v0, 10		# load syscall: exit
