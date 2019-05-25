@@ -3,7 +3,7 @@
 # Arquitectura de Computadores I
 #
 # RSA encrypter and decrypter
-# Key size: bits
+# Key size: 32 bits
 #
 # Josafat Vargas Gamboa
 # 2013030892
@@ -22,6 +22,7 @@ puk_file:   	.asciiz "_publicKeys.txt"
 prk_file:   	.asciiz "_privateKeys.txt"
 src_file:   	.asciiz "_srcMessage.txt"
 out_file:   	.asciiz "_outMessage.txt"
+enc_file:   	.asciiz "_encMessage.txt"
 
 choose_msg:	.asciiz "Enter 1 for decryption or 0 for encryption\n"
 startE_msg:    	.asciiz "Starting encryption\n"
@@ -31,7 +32,7 @@ endD_msg:    	.asciiz "Decryption completed\n"
 bad_msg:    	.asciiz "open file syscall failed\n"
 ok_msg:     	.asciiz "open file succesful\n"
 
-done:		.asciiz "not yet implemented\n"
+done:		.asciiz "Process completed\n"
 
 	.text
 	.globl _main
@@ -70,7 +71,7 @@ _encrypt:
 	# store message (done by encryption)
 	
 _decrypt:
-	la $a0, startE_msg	# load msg address
+	la $a0, startD_msg	# load msg address
 	li $v0, 4		# load syscall: print_string
 	syscall			# execute syscall: print_string
 	
@@ -87,15 +88,16 @@ _decrypt:
 	jal _readFile		# load public key to mem
 
 	# set arguments to read message	
-	la $t0, src_file	# Name of the file to open
+	la $t0, enc_file	# Name of the file to open
 	li $t1, 0		# Open for reading (flags are 0: read, 1: write) 
 	la $t2, message        	# addr input buffer
 	jal _readFile		# load message to mem
 	
-	j _encryption		# encrypt the file
+	j _decryption		# encrypt the file
 	# store message (done by encryption)
 	
-# Succesful exit
+		
+	# Succesful exit
 _exit:
 	la $a0, done		# load msg address
 	li $v0, 4		# load syscall: print_string
@@ -104,12 +106,26 @@ _exit:
 	li $v0, 10		# load syscall: exit
 	syscall
 	
-	
 _error:
 	li $a0, 1		# load generic error: 1
 	li $v0, 17		# load syscall: exit2 with code
 	syscall
+	
+_errExit:
+	la      $a0, bad_msg	# load bad message
+	li      $v0, 4		# print error message
+	syscall
+	
+	li $a0, 2		# load file error: 2
+	li $v0, 17		# load syscall: exit2 with code
+	syscall
 
+	
+_errV:
+	li $a0, 4		# load error: 4
+	li $v0, 17		# load syscall: exit2 with code
+	syscall
+	
 
 # FILE MANAGER
 #
@@ -161,7 +177,7 @@ _writeFile:
 	
 	#WRITE
 	move $a0, $t8		# Load file descriptor
-	la $a1, out_file	# addr output buffer
+	la $a1, buffer		# addr output buffer
 	li $a2, 16		# max number of characters (bytes) to write
 	li $v0, 15		# load syscall: write_to_file
 	syscall	 		# execute syscall: write_to_file
@@ -174,50 +190,120 @@ _writeFile:
 	li $v0, 16		# load syscall: close_file
 	syscall	 		# execute syscall: close_file
 	
-	jr $ra			# jump back
-	
-_errExit:
-	la      $a0, bad_msg	# load bad message
-	li      $v0, 4		# print error message
-	syscall
-	
-	li $a0, 2		# load file error: 2
-	li $v0, 17		# load syscall: exit2 with code
-	syscall
-
-
-
-
-
-	
+	j _exit			# jump back
 	
 	
 # ENCRITPTION ALGORITHM
 _encryption:
+# Load values
+	la $t0, message 	#load value
+	lw $t1, ($t0)		# value for a: message
 	
-	j _exit
+	li $t2, 3		# hard-code k: encryptor
 	
+	la $t0, puKey		# load value
+	lw $t3, ($t0)		# value for n: modulus
 	
+	la $t0, buffer		# position in mem to store value
 	
+# A pow K mod (N)			
+	move $t4, $t1		# A = a
 	
+	# test bit 0
+	li $t5, 1		# create mask
+	li $t6, 1		# t6: output: b = 1
+	and $t5, $t2, $t5	# AND to isolate: if bit == 1: 1, else 0
+	beqz $t5, _eaa		# bit is 0
+	move $t6, $t1		# if k[0] == 1: b = a
+_eaa:
+	li $t7, 1		# set iterator and bit to test
+_while:
+	mul $t4, $t4, $t4	# A = A * A
+	mfhi $t8		# catch overflow
+	bnez $t8, _errV		# oVerflow error
 	
+	div $t4, $t4, $t3	# A = A % n
+	mfhi $t4		# get modulus
 	
+	# test bit i
+	li $t5, 1		# create mask
+	srlv $t8, $t2, $t7	# shift to isolate $t7th bit
+	and $t5, $t5, $t8	# and to isolate: if bit == 1: 1, else 0
+	beqz $t5, _eab		# i bit is 0
 	
+	mul $t6, $t6, $t4	# b = b * A
+	mfhi $t8		# catch overflow
+	bnez $t8, _errV		# oVerflow error
+	div $t6, $t6, $t3	# b = b % n
+	mfhi $t6		# get modulus
+_eab:
+	add $t7, $t7, 1		# increment iterator
+	bne $t7, 3, _while	# must know exact number of bits + 1
+	sw $t6, 12($t0)		# store value in memory
 	
+	#load values to store in file:
+	la $t0, out_file	# Name of the file to open
+	li $t1, 1		# Open for writing (flags are 0: read, 1: write) 
+	la $t2, buffer         	# addr output buffer
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+	j _writeFile
+
+
 	
 # DECRYPTION ALGORITHM	
 _decryption:
-	j _exit
+# Load values
+	la $t0, message 	#load value
+	lw $t1, ($t0)		# value for a: message
+		
+	la $t0, prKey 		#load value
+	lw $t2, ($t0)		# hard-code k: encryptor
+	
+	la $t0, puKey		# load value
+	lw $t3, ($t0)		# value for n: modulus
+	
+	la $t0, buffer		# position in mem to store value
+	
+# A pow K mod (N)		
+	move $t4, $t1		# A = a
+	
+	# test bit 0
+	li $t5, 1		# create mask
+	li $t6, 1		# t6: output: b = 1
+	and $t5, $t2, $t5	# AND to isolate: if bit == 1: 1, else 0
+	beqz $t5, _daa		# bit is 0
+	move $t6, $t1		# if k[0] == 1: b = a
+_daa:
+	li $t7, 1		# set iterator and bit to test
+_while2:
+	mul $t4, $t4, $t4	# A = A * A
+	mfhi $t8		# catch overflow
+	bnez $t8, _errV		# oVerflow error
+	
+	div $t4, $t4, $t3	# A = A % n
+	mfhi $t4		# get modulus
+	
+	# test bit i
+	li $t5, 1		# create mask
+	srlv $t8, $t2, $t7	# shift to isolate $t7th bit
+	and $t5, $t5, $t8	# and to isolate: if bit == 1: 1, else 0
+	beqz $t5, _dab		# i bit is 0
+	
+	mul $t6, $t6, $t4	# b = b * A
+	mfhi $t8		# catch overflow
+	bnez $t8, _errV		# oVerflow error
+	div $t6, $t6, $t3	# b = b % n
+	mfhi $t6		# get modulus
+_dab:
+	add $t7, $t7, 1		# increment iterator
+	bne $t7, 3, _while2	# must know exact number of bits + 1
+	sw $t6, 12($t0)		# store value in memory
+	
+	#load values to store in file:
+	la $t0, out_file	# Name of the file to open
+	li $t1, 1		# Open for writing (flags are 0: read, 1: write)
+	
+	j _writeFile
 	
 	
 	

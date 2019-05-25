@@ -19,10 +19,10 @@ result:		.space 8
 	.text
 	.globl _main
 _main:
-	la $t0, result  # position in mem to store value
 	li $t1, 5	# test value for a
 	li $t2, 596	# test value for k
 	li $t3, 1234	# test value for n
+	la $t0, result  # position in mem to store value
 	
 	beqz $t1, _trivial	# trivial
 	
@@ -67,4 +67,7 @@ _trivial:
 	
 	
 _errorV:
-	syscall			# cause error and exit
+_error:
+	li $a0, 4		# load generic error: 1
+	li $v0, 17		# load syscall: exit2 with code
+	syscall
