@@ -4,6 +4,8 @@
 # Handbook of Applied Cryptography by A. Menezes, P. van Oorschot and S. Vanstone.
 # Page 71. 2.143 Algorithm: Repeated square-and-multiply algorithm for exponentiation in Zn
 #
+# Python 2.7.15
+#
 # 24 de Mayo, 2019
 
 

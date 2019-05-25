@@ -30,7 +30,12 @@ endD_msg:    	.asciiz "Decryption completed\n"
 bad_msg:    	.asciiz "open file syscall failed\n"
 ok_msg:     	.asciiz "open file succesful\n"
 
+temp:		.space 16	# result of multiplication
+temp2:		.space 8	# temp space for multiplication
+
 done:		.asciiz "not yet implemented\n"
+
+
 
 	.text
 	.globl _main
@@ -56,12 +61,13 @@ _pow:
 	sub, $t2, $t2, 1	# decrement iterator
 	bnez $t2, _pow		# iterate
 	
-	la $t0, puKey		#
+	la $t0, puKey		# 
 	lw $t1, 12($t0)		# 
 	
-	div $t3, $t3, $t1
-	mfhi $t3	
+	div $t3, $t3, $t1	# 
+	mfhi $t3		# 
 	
-	la $t0, buffer
-	sw $t3, 12($t0)
+	la $t0, buffer		# 
+	sw $t3, 12($t0)		# 
+
 
