@@ -13,10 +13,10 @@
 
 
 	.data
-prKey:		.space 16
-puKey:		.space 16
-message:	.space 16
-buffer:		.space 16
+prKey:		.space 4
+puKey:		.space 4
+message:	.space 4
+buffer:		.space 4
 
 puk_file:   	.asciiz "_publicKeys.txt"
 prk_file:   	.asciiz "_privateKeys.txt"
@@ -30,6 +30,8 @@ startD_msg:     .asciiz "Starting decryption\n"
 endE_msg:    	.asciiz "Encryption completed\n"
 endD_msg:    	.asciiz "Decryption completed\n"
 bad_msg:    	.asciiz "open file syscall failed\n"
+err_msg:	.asciiz "error ocurred\n"
+erv_msg:	.asciiz "overflow error ocurred\n"
 ok_msg:     	.asciiz "open file succesful\n"
 
 done:		.asciiz "Process completed\n"
@@ -107,6 +109,10 @@ _exit:
 	syscall
 	
 _error:
+	la      $a0, err_msg	# load bad message
+	li      $v0, 4		# print error message
+	syscall
+	
 	li $a0, 1		# load generic error: 1
 	li $v0, 17		# load syscall: exit2 with code
 	syscall
@@ -119,9 +125,12 @@ _errExit:
 	li $a0, 2		# load file error: 2
 	li $v0, 17		# load syscall: exit2 with code
 	syscall
-
 	
 _errV:
+	la      $a0, erv_msg	# load bad message
+	li      $v0, 4		# print error message
+	syscall
+	
 	li $a0, 4		# load error: 4
 	li $v0, 17		# load syscall: exit2 with code
 	syscall
@@ -178,7 +187,7 @@ _writeFile:
 	#WRITE
 	move $a0, $t8		# Load file descriptor
 	la $a1, buffer		# addr output buffer
-	li $a2, 16		# max number of characters (bytes) to write
+	li $a2, 4		# max number of characters (bytes) to write
 	li $v0, 15		# load syscall: write_to_file
 	syscall	 		# execute syscall: write_to_file
 	
@@ -238,11 +247,11 @@ _while:
 	mfhi $t6		# get modulus
 _eab:
 	add $t7, $t7, 1		# increment iterator
-	bne $t7, 3, _while	# must know exact number of bits + 1
-	sw $t6, 12($t0)		# store value in memory
+	bne $t7, 3, _while	# must know exact number of bits of k and add 1
+	sw $t6, ($t0)		# store value in memory
 	
 	#load values to store in file:
-	la $t0, out_file	# Name of the file to open
+	la $t0, enc_file	# Name of the file to open
 	li $t1, 1		# Open for writing (flags are 0: read, 1: write) 
 	la $t2, buffer         	# addr output buffer
 	
@@ -257,10 +266,10 @@ _decryption:
 	lw $t1, ($t0)		# value for a: message
 		
 	la $t0, prKey 		#load value
-	lw $t2, ($t0)		# hard-code k: encryptor
+	lw $t2, ($t0)		# private key k: decryptor
 	
 	la $t0, puKey		# load value
-	lw $t3, ($t0)		# value for n: modulus
+	lw $t3, ($t0)		# public key n: modulus
 	
 	la $t0, buffer		# position in mem to store value
 	
@@ -296,8 +305,8 @@ _while2:
 	mfhi $t6		# get modulus
 _dab:
 	add $t7, $t7, 1		# increment iterator
-	bne $t7, 3, _while2	# must know exact number of bits + 1
-	sw $t6, 12($t0)		# store value in memory
+	bne $t7, 13, _while2	# must know exact number of bits of k and add 1
+	sw $t6, ($t0)		# store value in memory
 	
 	#load values to store in file:
 	la $t0, out_file	# Name of the file to open

@@ -57,7 +57,7 @@ _while:
 	mfhi $t6		# get modulus
 _aab:
 	add $t7, $t7, 1		# increment iterator
-	bne $t7, 10, _while	# must know exact number of bits
+	bne $t7, 12, _while	# must know exact number of bits
 	sw $t6, ($t0)		# store value in memory
 	
 
